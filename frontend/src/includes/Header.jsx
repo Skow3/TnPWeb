@@ -18,7 +18,7 @@ const Header = () => {
       // , 'Infrastructure'
     ],
     'For Recruiters': ['Recruitment Procedure', 'Download Brochure'],
-    'For Students': ['Login' // [CHANGED FROM Form --> Login]
+    'For Students': ['Form' // [CHANGED FROM Form --> Login]
       // , 'Internships'
       , 'Policy']
   };
@@ -130,6 +130,20 @@ const Header = () => {
     };
   }, []);
 
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (activeDropdown && !event.target.closest('.dropdown-container')) {
+        setActiveDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [activeDropdown]);
+
   // Responsive design - detect orientation
   useEffect(() => {
     const handleOrientationChange = () => {
@@ -158,59 +172,6 @@ const Header = () => {
     </div>
   );
 
-  // Original NavLinks [CHANGE: 1]
-  /*
-  const NavLinks = ({ navItems, activeDropdown, toggleDropdown }) => (
-    <>
-      <a href="/" className="flex items-center space-x-1 hover:text-blue-600 transition-colors">
-        <Home size={20} />
-        <span>Home</span>
-      </a>
-      {Object.entries(navItems).map(([title, items]) => (
-        <div key={title} className="relative group">
-          <button
-            className="flex items-center space-x-1 hover:text-blue-600 transition-colors"
-            onClick={() => toggleDropdown(title)}
-          >
-            {title === 'About' && <Info size={20} />}
-            {title === 'For Recruiters' && <Building2 size={20} />}
-            {title === 'For Students' && <GraduationCap size={20} />}
-            {title === 'Placement Stats' && <GraduationCap size={20} />}
-            <span>{title}</span>
-            <ChevronDown size={16} className={`transform transition-transform duration-200 ${activeDropdown === title ? 'rotate-180' : ''}`} />
-          </button>
-          <div className={`
-            absolute top-full left-0 w-48 bg-white shadow-lg rounded-lg py-2
-            transform transition-all duration-200 origin-top
-            ${activeDropdown === title ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'}
-          `} style={{zIndex:"1000"}}>
-
-            {items.map((item) => {
-              const itemPath = item.toLowerCase().replace(/\s+/g, '-');
-              return (
-                <NavLink
-                  key={item}
-                  to={`/${itemPath}`}
-                  className={({ isActive }) =>
-                    `block px-4 py-2 hover:bg-blue-50 ${isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-800'
-                    } hover:text-blue-600 transition-colors`
-                  }
-                >
-                  {item}
-                </NavLink>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-      <NavLink to={"/statistics"} className="flex items-center space-x-1 hover:text-blue-600 transition-colors">
-        <BarChart size={20} />
-        <span>Placement Statistics</span>
-      </NavLink>
-    </>
-  );
-  */
-  // Updated NavLinks [CHANGE wrt 1]
   const NavLinks = ({ navItems, activeDropdown, toggleDropdown, closeSidebar }) => (
     <>
       <a href="/" className="flex items-center space-x-1 hover:text-blue-600 transition-colors" onClick={closeSidebar}>
@@ -218,7 +179,7 @@ const Header = () => {
         <span>Home</span>
       </a>
       {Object.entries(navItems).map(([title, items]) => (
-        <div key={title} className="relative group">
+        <div key={title} className="relative group dropdown-container">
           <button
             className="flex items-center space-x-1 hover:text-blue-600 transition-colors"
             onClick={() => toggleDropdown(title)}
@@ -226,7 +187,6 @@ const Header = () => {
             {title === 'About' && <Info size={20} />}
             {title === 'For Recruiters' && <Building2 size={20} />}
             {title === 'For Students' && <GraduationCap size={20} />}
-            {title === 'Placement Stats' && <GraduationCap size={20} />}
             <span>{title}</span>
             <ChevronDown size={16} className={`transform transition-transform duration-200 ${activeDropdown === title ? 'rotate-180' : ''}`} />
           </button>
@@ -245,7 +205,10 @@ const Header = () => {
                     `block px-4 py-2 hover:bg-blue-50 ${isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-800'
                     } hover:text-blue-600 transition-colors`
                   }
-                  onClick={closeSidebar}
+                  onClick={() => {
+                    setActiveDropdown(null);
+                    if (closeSidebar) closeSidebar();
+                  }}
                 >
                   {item}
                 </NavLink>
@@ -261,19 +224,6 @@ const Header = () => {
     </>
   );
 
-  // Previous MobileNavLinks [CHANGE: 2]
-  /*
-  const MobileNavLinks = ({ navItems, activeDropdown, toggleDropdown }) => (
-    <div className="flex flex-col space-y-4 mt-4">
-      <NavLinks
-        navItems={navItems}
-        activeDropdown={activeDropdown}
-        toggleDropdown={toggleDropdown}
-      />
-    </div>
-  );
-  */
-  // Updated MobileNavLinks to include closeSidebar [CHANGE wrt 2] 
   const MobileNavLinks = ({ navItems, activeDropdown, toggleDropdown }) => (
     <div className="flex flex-col space-y-4 mt-4">
       <NavLinks
@@ -293,8 +243,6 @@ const Header = () => {
           <a href="mailto:tnp@iiitmanipur.ac.in"><span>Email:</span> tnp@iiitmanipur.ac.in</a>
         </div>
         <div className="header-actions">
-
-          {console.log(user)}
           {!user ? (
             <>
               <NavLink
@@ -303,9 +251,6 @@ const Header = () => {
               >
                 <FaUserCircle /> Student Login
               </NavLink>
-              {/* <a href="/recruiter-login" className="login-btn recruiter">
-                <FaUserCircle /> Recruiter Portal
-              </a> */}
             </>
           ) : (
             <div className="flex items-center gap-2">
@@ -336,28 +281,7 @@ const Header = () => {
           )}
         </div>
       </div>
-      {/* <div className="bg-blue-900 text-white">
-              <div className="container mx-auto px-4 py-2">
-                <div className="flex flex-wrap justify-between items-center">
-                  <div className="flex items-center space-x-4">
-                    <a href="tel:+1234567890" className="flex items-center space-x-2 text-sm hover:text-blue-200 transition-colors">
-                      <Phone size={16} />
-                      <span>+1 (234) 567-890</span>
-                    </a>
-                    <a href="mailto:info@institute.edu" className="flex items-center space-x-2 text-sm hover:text-blue-200 transition-colors">
-                      <Mail size={16} />
-                      <span>info@institute.edu</span>
-                    </a>
-                  </div>
-                  <div className="flex space-x-4">
-                    <button className="text-sm hover:text-blue-200 transition-colors">Student Login</button>
-                    <button className="text-sm hover:text-blue-200 transition-colors">Recruiter Login</button>
-                  </div>
-                </div>
-              </div>
-            </div> */}
 
-      {/* Main Header */}
       <div className="container mx-auto px-4 py-4">
         <div className="flex justify-between items-center">
           <a href="/">
@@ -371,7 +295,6 @@ const Header = () => {
             </div>
           </a>
 
-          {/* Mobile Menu Button */}
           <button
             className="lg:hidden"
             onClick={() => setIsOpen(!isOpen)}
@@ -379,9 +302,7 @@ const Header = () => {
             {isOpen ? <X /> : <Menu />}
           </button>
 
-          {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-6" style={{zIndex:"999"}}>
-            {/* <SearchBar /> */}
             <NavLinks
               navItems={navItems}
               activeDropdown={activeDropdown}
@@ -391,12 +312,11 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Mobile Navigation */}
       <div className={`
               lg:hidden fixed inset-y-0 right-0 transform w-64 bg-white shadow-lg
               transition-transform duration-300 ease-in-out z-50
               ${isOpen ? 'translate-x-0' : 'translate-x-full'}
-            `} style={{zIndex:"999",    width:"100%"}}>
+            `} style={{zIndex:"999", width:"100%"}}>
         <div className="p-6">
           <button
             className="absolute top-4 right-4"
@@ -405,7 +325,6 @@ const Header = () => {
             <X />
           </button>
           <div className="mt-8">
-            {/* <SearchBar /> */}
             <MobileNavLinks
               navItems={navItems}
               activeDropdown={activeDropdown}

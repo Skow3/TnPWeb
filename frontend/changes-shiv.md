@@ -21,3 +21,6 @@ VERSION 1.0.2
 
 10. form --> login [Text change in dropdown]
 
+11. SOLVED THE PERSISTENT DROPDOWN ISSUE , Added a useEffect hook to detect clicks outside dropdown menus in the navbar [Header.jsx].
+
+12. Decreased the padding in the policy and the pdf pages
